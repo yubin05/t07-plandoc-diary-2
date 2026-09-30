@@ -426,11 +426,24 @@
       try{ tags = JSON.parse(t.tags || "[]"); }catch(e){ tags = []; }
       var metaLine = el("div", { className: "meta" });
       metaLine.appendChild(document.createTextNode(
-        "마감 " + (t.due_date || "-") + " · 우선순위 " + t.priority + " · 예상 " + t.estimated_hours + "h" +
-        " · 실행 기록 " + (t.log_count || 0) + "건" + " · "
+        "마감 " + (t.due_date || "-") + " · 우선순위 " + t.priority + " · 예상 " + t.estimated_hours + "h" + " · "
       ));
       tags.forEach(function(tag){ metaLine.appendChild(el("span", { className: "tag", text: tag })); });
       item.appendChild(metaLine);
+
+      // 실행 기록은 항상 펼쳐서 보여준다 (클릭해야만 보이는 방식 X)
+      var logs = [];
+      try{ logs = JSON.parse(t.logs_json || "[]") || []; }catch(e){ logs = []; }
+      var logListBox = el("div", { className: "log-list" });
+      if(logs.length === 0){
+        logListBox.appendChild(el("div", { text: "실행 기록 없음" }));
+      }else{
+        logs.forEach(function(l){
+          var line = fmtDate(l.started_at) + " ~ " + fmtDate(l.ended_at) + " (" + Math.round(l.actual_minutes) + "분)" + (l.blocked_reason ? " · 막힘: " + l.blocked_reason : "");
+          logListBox.appendChild(el("div", { text: line }));
+        });
+      }
+      item.appendChild(logListBox);
 
       var btnRow = el("div", { className: "btn-row" });
       if(t.status === "done"){
@@ -449,14 +462,14 @@
         if(!window.confirm("이 할 일을 지울까요?")) return;
         await api("/api/tasks/" + t.id, { method: "DELETE" }); await loadTasks(); await loadReview();
       });
-      var logBtn = el("button", { className: "small", text: "실행 기록 보기/추가" });
-      var logBox = el("div", { className: "log-list" });
-      logBtn.addEventListener("click", function(){ toggleLogForm(t, logBox); });
+      var logBtn = el("button", { className: "small", text: "+ 실행 기록 추가" });
+      var logFormBox = el("div");
+      logBtn.addEventListener("click", function(){ toggleLogForm(t, logFormBox); });
       btnRow.appendChild(editBtn);
       btnRow.appendChild(delBtn);
       btnRow.appendChild(logBtn);
       item.appendChild(btnRow);
-      item.appendChild(logBox);
+      item.appendChild(logFormBox);
 
       list.appendChild(item);
     });
@@ -514,7 +527,7 @@
   }
 
   function toggleLogForm(task, box){
-    if(box.getAttribute("data-open") === "1"){ clearChildren(box); box.setAttribute("data-open", "0"); loadLogsInto(task, box, false); return; }
+    if(box.getAttribute("data-open") === "1"){ clearChildren(box); box.setAttribute("data-open", "0"); return; }
     box.setAttribute("data-open", "1");
     clearChildren(box);
     var form = el("form");
@@ -531,25 +544,11 @@
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ started_at: new Date(startInput.value).toISOString(), ended_at: new Date(endInput.value).toISOString(), blocked_reason: reasonInput.value || null })
       });
-      await loadLogsInto(task, box, true);
+      box.setAttribute("data-open", "0");
+      await loadTasks(); // 목록을 다시 불러오면 방금 추가한 기록이 항상-펼침 목록에 바로 보인다
       await loadReview();
     });
     box.appendChild(form);
-    loadLogsInto(task, box, true);
-  }
-
-  async function loadLogsInto(task, box, keepForm){
-    var data = await api("/api/tasks/" + task.id + "/logs");
-    var existingForm = keepForm ? box.querySelector("form") : null;
-    clearChildren(box);
-    if(existingForm) box.appendChild(existingForm);
-    if(data.logs.length === 0){
-      box.appendChild(el("div", { text: "아직 실행 기록이 없습니다." }));
-    }
-    data.logs.forEach(function(l){
-      var line = fmtDate(l.started_at) + " ~ " + fmtDate(l.ended_at) + " (" + Math.round(l.actual_minutes) + "분)" + (l.blocked_reason ? " · 막힘: " + l.blocked_reason : "");
-      box.appendChild(el("div", { text: line }));
-    });
   }
 
   document.getElementById("form-task").addEventListener("submit", async function(e){
