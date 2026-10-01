@@ -10,4 +10,4 @@ not_found_handling = "single-page-application"
 [[d1_databases]]
 binding = "DB"
 database_name = "t07-plandoc-diary-2-db"
-database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+database_id = "0645b357-89c2-4651-bf2d-fd1ecd3c213c"
