@@ -2,7 +2,7 @@
 // 비밀키 없음: 세션은 서명이 필요없는 순수 조회형 토큰(랜덤 바이트)이라 어떤 비밀키도 쓰지 않는다.
 // 비밀번호: Workers 런타임 내장 Web Crypto(crypto.subtle)의 PBKDF2-SHA256, 계정마다 랜덤 salt.
 
-const PBKDF2_ITERATIONS = 150000;
+const PBKDF2_ITERATIONS = 100000; // Cloudflare Workers의 실제 배포 런타임은 PBKDF2 반복 횟수를 10만까지만 허용함(로컬 에뮬레이터는 더 높아도 통과해서 배포 후에야 발견됨)
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7일
 
 function json(data, status, extraHeaders) {
