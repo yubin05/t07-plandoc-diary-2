@@ -77,11 +77,37 @@
 </head>
 <body>
 <main>
-  <h1>플랜두씨 다이어리</h1>
-  <div class="banner">지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요.</div>
+  <h1>플랜두씨 다이어리 2</h1>
 
-  <!-- ===== 계획 ===== -->
-  <section class="card">
+  <!-- ===== 로그인/가입 화면 (로그인 전에는 이것만 보임) ===== -->
+  <section class="card" id="auth-screen">
+    <h2 id="auth-title">로그인</h2>
+    <form id="form-auth">
+      <label for="auth-email">이메일</label>
+      <input id="auth-email" type="email" required autocomplete="username">
+      <label for="auth-password">비밀번호 (8자 이상)</label>
+      <input id="auth-password" type="password" required autocomplete="current-password" minlength="8">
+      <div class="btn-row">
+        <button type="submit" class="primary" id="btn-auth-submit">로그인</button>
+        <button type="button" id="btn-auth-toggle">계정이 없나요? 가입하기</button>
+      </div>
+      <p class="msg" id="auth-msg"></p>
+    </form>
+  </section>
+
+  <!-- ===== 로그인 뒤에만 보이는 전체 앱 ===== -->
+  <div id="app-root" hidden>
+    <div class="banner" id="account-bar"></div>
+
+    <section class="card">
+      <h2>T06 자료 가져오기</h2>
+      <p class="meta">T06에서 "내 자료 전체를 파일로 내보내기"로 받은 JSON 파일을 올리면 이 계정으로 옮겨집니다. (한 번만 하면 됩니다)</p>
+      <input type="file" id="import-file" accept="application/json">
+      <p class="msg" id="import-msg"></p>
+    </section>
+
+    <!-- ===== 계획 ===== -->
+    <section class="card">
     <h2>1. 계획</h2>
     <div id="reflection-suggest" class="msg"></div>
     <form id="form-plan">
@@ -161,6 +187,81 @@
     <h2>4. 내보내기</h2>
     <button type="button" id="btn-export">내 자료 전체를 파일로 내보내기</button>
   </section>
+
+  <!-- ===== 5일 지표 추적 ===== -->
+  <section class="card">
+    <h2>5. 5일 지표 추적</h2>
+    <div id="metric-setup-box">
+      <p class="meta">1일차에 한 번만 고정합니다 (나중에 못 바꿉니다 — 계획 규칙만 "규칙 변경"으로 바꿀 수 있어요).</p>
+      <form id="form-metric-config">
+        <label for="mc-question">1일차에 답하려는 질문 (한 문장)</label>
+        <input id="mc-question" placeholder="예: 하루에 할 일을 몇 개 완료하는가?" required>
+        <div class="row">
+          <div><label for="mc-name">관찰 지표</label><input id="mc-name" value="완료한 할 일 개수" required></div>
+          <div><label for="mc-unit">단위</label><input id="mc-unit" value="건" required></div>
+        </div>
+        <label for="mc-calc">계산 규칙</label>
+        <input id="mc-calc" value="그날 Asia/Seoul 기준 완료 처리된 할 일 개수" required>
+        <div class="row">
+          <div><label for="mc-missing">값이 빠졌을 때</label><input id="mc-missing" value="결측으로 표시(0으로 채우지 않음)" required></div>
+          <div><label for="mc-dup">값이 중복될 때</label><input id="mc-dup" value="같은 날짜는 마지막 값으로 덮어씀" required></div>
+        </div>
+        <div class="row">
+          <div><label for="mc-outlier">값이 유난히 튈 때</label><input id="mc-outlier" value="그대로 두고 표에 표시만 함" required></div>
+          <div><label for="mc-round">반올림</label><input id="mc-round" value="소수점 첫째 자리에서 반올림" required></div>
+        </div>
+        <div class="row">
+          <div><label for="mc-week">주 시작 요일</label><input id="mc-week" value="월요일" required></div>
+          <div><label for="mc-rule">초기 계획 규칙</label><input id="mc-rule" placeholder="예: 하루 목표 2개 완료" required></div>
+        </div>
+        <div class="btn-row"><button type="submit" class="primary">1일차 설정 고정하기</button></div>
+        <p class="msg" id="metric-config-msg"></p>
+      </form>
+    </div>
+
+    <div id="metric-tracked-box" hidden>
+      <div class="meta" id="metric-config-view"></div>
+      <div class="btn-row">
+        <button type="button" id="btn-record-today" class="primary">오늘 값 기록하기</button>
+      </div>
+      <p class="msg" id="metric-record-msg"></p>
+
+      <h3 style="margin-top:14px;">계획 규칙 변경 (2일차 뒤 ~ 3일차 전에 한 번)</h3>
+      <form id="form-rule-change">
+        <label for="rc-reason">바꾼 이유</label>
+        <input id="rc-reason" placeholder="예: 목표가 너무 낮아서 긴장감이 없었음" required>
+        <label for="rc-rule">새 계획 규칙</label>
+        <input id="rc-rule" placeholder="예: 하루 목표 3개 완료" required>
+        <div class="btn-row"><button type="submit">규칙 변경 기록하기</button></div>
+        <p class="msg" id="rule-change-msg"></p>
+      </form>
+
+      <h3 style="margin-top:14px;">5일 기록</h3>
+      <table>
+        <thead><tr><th>날짜</th><th id="metric-col-label">값</th></tr></thead>
+        <tbody id="metric-rows"></tbody>
+      </table>
+      <p class="meta" id="metric-comparison"></p>
+    </div>
+  </section>
+
+  <!-- ===== 계정 ===== -->
+  <section class="card">
+    <h2>6. 계정</h2>
+    <form id="form-change-password">
+      <label for="cp-current">현재 비밀번호</label>
+      <input id="cp-current" type="password" required autocomplete="current-password">
+      <label for="cp-new">새 비밀번호 (8자 이상)</label>
+      <input id="cp-new" type="password" required minlength="8" autocomplete="new-password">
+      <div class="btn-row"><button type="submit">비밀번호 변경</button></div>
+      <p class="msg" id="change-password-msg"></p>
+    </form>
+    <div class="btn-row" style="margin-top:14px;">
+      <button type="button" class="danger" id="btn-delete-account">계정과 내 자료 전부 삭제</button>
+    </div>
+    <p class="msg" id="delete-account-msg"></p>
+  </section>
+  </div><!-- /app-root -->
 </main>
 
 <script>
@@ -189,6 +290,10 @@
 
   async function api(path, opts){
     var res = await fetch(path, opts);
+    if(res.status === 401 && path !== "/api/auth/me"){
+      showAuthScreen();
+      throw new Error("로그인이 필요합니다.");
+    }
     var data = await res.json().catch(function(){ return {}; });
     if(!res.ok) throw new Error(data.error || ("요청 실패 (" + res.status + ")"));
     return data;
@@ -653,10 +758,223 @@
     window.location.href = "/api/export";
   });
 
+  // ---------------- T06 자료 가져오기 ----------------
+
+  document.getElementById("import-file").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    var msg = document.getElementById("import-msg");
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = async function(){
+      try{
+        var parsed = JSON.parse(String(reader.result));
+        var res = await api("/api/import", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(parsed) });
+        msg.textContent = "가져옴: 계획 " + res.imported.plans + ", 할 일 " + res.imported.tasks + ", 실행기록 " + res.imported.execution_logs + ", 돌아보기메모 " + res.imported.reflections;
+        msg.className = "msg ok";
+        await loadPlans();
+      }catch(err){
+        msg.textContent = "가져오기 실패: " + err.message;
+        msg.className = "msg error";
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------------- 인증 ----------------
+
+  var authMode = "login"; // 'login' | 'signup'
+
+  document.getElementById("btn-auth-toggle").addEventListener("click", function(){
+    authMode = authMode === "login" ? "signup" : "login";
+    document.getElementById("auth-title").textContent = authMode === "login" ? "로그인" : "가입하기";
+    document.getElementById("btn-auth-submit").textContent = authMode === "login" ? "로그인" : "가입하기";
+    this.textContent = authMode === "login" ? "계정이 없나요? 가입하기" : "이미 계정이 있나요? 로그인";
+    document.getElementById("auth-password").setAttribute("autocomplete", authMode === "login" ? "current-password" : "new-password");
+  });
+
+  document.getElementById("form-auth").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var msg = document.getElementById("auth-msg");
+    var email = document.getElementById("auth-email").value.trim();
+    var password = document.getElementById("auth-password").value;
+    var path = authMode === "login" ? "/api/auth/login" : "/api/auth/signup";
+    try{
+      var res = await fetch(path, { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ email: email, password: password }) });
+      var data = await res.json().catch(function(){ return {}; });
+      if(!res.ok){ msg.textContent = data.error || "실패했습니다."; msg.className = "msg error"; return; }
+      document.getElementById("auth-password").value = "";
+      await enterApp(data.user);
+    }catch(err){
+      msg.textContent = "오류: " + err.message; msg.className = "msg error";
+    }
+  });
+
+  function showAuthScreen(){
+    document.getElementById("auth-screen").hidden = false;
+    document.getElementById("app-root").hidden = true;
+  }
+
+  async function enterApp(user){
+    document.getElementById("auth-screen").hidden = true;
+    document.getElementById("app-root").hidden = false;
+    var bar = document.getElementById("account-bar");
+    clearChildren(bar);
+    bar.appendChild(document.createTextNode(user.email + " 로 로그인됨 · "));
+    var logoutBtn = el("button", { className: "small", text: "로그아웃" });
+    logoutBtn.addEventListener("click", async function(){
+      await fetch("/api/auth/logout", { method: "POST" });
+      showAuthScreen();
+    });
+    bar.appendChild(logoutBtn);
+
+    await loadPlans();
+    await checkSuggestedReflection();
+    await loadMetricState();
+  }
+
+  document.getElementById("form-change-password").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var msg = document.getElementById("change-password-msg");
+    try{
+      await api("/api/auth/change-password", {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({ current_password: document.getElementById("cp-current").value, new_password: document.getElementById("cp-new").value })
+      });
+      msg.textContent = "비밀번호를 바꿨습니다. 다른 기기의 로그인은 모두 풀립니다.";
+      msg.className = "msg ok";
+      document.getElementById("form-change-password").reset();
+    }catch(err){
+      msg.textContent = "실패: " + err.message; msg.className = "msg error";
+    }
+  });
+
+  document.getElementById("btn-delete-account").addEventListener("click", async function(){
+    if(!window.confirm("정말 계정과 모든 자료를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    await fetch("/api/auth/account", { method: "DELETE" });
+    window.location.reload();
+  });
+
+  // ---------------- 5일 지표 추적 ----------------
+
+  document.getElementById("form-metric-config").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var msg = document.getElementById("metric-config-msg");
+    try{
+      await api("/api/metric/config", {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({
+          question_text: document.getElementById("mc-question").value.trim(),
+          metric_name: document.getElementById("mc-name").value.trim(),
+          unit: document.getElementById("mc-unit").value.trim(),
+          calc_rule_text: document.getElementById("mc-calc").value.trim(),
+          missing_rule_text: document.getElementById("mc-missing").value.trim(),
+          duplicate_rule_text: document.getElementById("mc-dup").value.trim(),
+          outlier_rule_text: document.getElementById("mc-outlier").value.trim(),
+          rounding_rule_text: document.getElementById("mc-round").value.trim(),
+          week_start_text: document.getElementById("mc-week").value.trim(),
+          planning_rule_text: document.getElementById("mc-rule").value.trim()
+        })
+      });
+      await loadMetricState();
+    }catch(err){
+      msg.textContent = "실패: " + err.message; msg.className = "msg error";
+    }
+  });
+
+  document.getElementById("btn-record-today").addEventListener("click", async function(){
+    var msg = document.getElementById("metric-record-msg");
+    try{
+      var res = await api("/api/metric/record-today", { method: "POST" });
+      msg.textContent = "오늘(" + res.daily_metric.record_date + ") 값 " + res.daily_metric.metric_value + " 기록함.";
+      msg.className = "msg ok";
+      await loadMetricState();
+    }catch(err){
+      msg.textContent = "실패: " + err.message; msg.className = "msg error";
+    }
+  });
+
+  document.getElementById("form-rule-change").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var msg = document.getElementById("rule-change-msg");
+    try{
+      await api("/api/metric/rule-change", {
+        method:"POST", headers:{"content-type":"application/json"},
+        body: JSON.stringify({ reason_text: document.getElementById("rc-reason").value.trim(), new_planning_rule_text: document.getElementById("rc-rule").value.trim() })
+      });
+      document.getElementById("form-rule-change").reset();
+      msg.textContent = "규칙 변경을 기록했습니다.";
+      msg.className = "msg ok";
+      await loadMetricState();
+    }catch(err){
+      msg.textContent = "실패: " + err.message; msg.className = "msg error";
+    }
+  });
+
+  async function loadMetricState(){
+    var cfgData = await api("/api/metric/config");
+    var setupBox = document.getElementById("metric-setup-box");
+    var trackedBox = document.getElementById("metric-tracked-box");
+    if(!cfgData.config){
+      setupBox.hidden = false;
+      trackedBox.hidden = true;
+      return;
+    }
+    setupBox.hidden = true;
+    trackedBox.hidden = false;
+    var cfg = cfgData.config;
+
+    var view = document.getElementById("metric-config-view");
+    clearChildren(view);
+    [
+      "질문: " + cfg.question_text,
+      "지표: " + cfg.metric_name + " (" + cfg.unit + ")",
+      "계산 규칙: " + cfg.calc_rule_text,
+      "결측 처리: " + cfg.missing_rule_text + " · 중복 처리: " + cfg.duplicate_rule_text,
+      "이상치 처리: " + cfg.outlier_rule_text + " · 반올림: " + cfg.rounding_rule_text + " · 주 시작: " + cfg.week_start_text,
+      "현재 계획 규칙: " + cfg.planning_rule_text
+    ].forEach(function(line){ view.appendChild(el("div", { text: line })); });
+    document.getElementById("metric-col-label").textContent = cfg.metric_name + "(" + cfg.unit + ")";
+
+    var dailyData = await api("/api/metric/daily");
+    var rcData = await api("/api/metric/rule-changes");
+    var rows = dailyData.daily_metrics;
+    var ruleChanges = rcData.rule_changes;
+
+    var tbody = document.getElementById("metric-rows");
+    clearChildren(tbody);
+    rows.forEach(function(r){
+      var tr = el("tr");
+      tr.appendChild(el("td", { text: r.record_date }));
+      tr.appendChild(el("td", { text: String(r.metric_value) }));
+      tbody.appendChild(tr);
+    });
+
+    var comparisonEl = document.getElementById("metric-comparison");
+    if(ruleChanges.length === 0){
+      comparisonEl.textContent = rows.length + "일 기록됨. 아직 규칙 변경 없음.";
+    }else{
+      var changeAt = ruleChanges[0].changed_at;
+      var before = rows.filter(function(r){ return r.record_date + "T23:59:59.000Z" < changeAt; }).map(function(r){ return r.metric_value; });
+      var after = rows.filter(function(r){ return r.record_date + "T00:00:00.000Z" >= changeAt; }).map(function(r){ return r.metric_value; });
+      var avg = function(arr){ return arr.length ? Math.round((arr.reduce(function(a,b){return a+b;},0)/arr.length)*10)/10 : null; };
+      comparisonEl.textContent = "규칙 변경(" + fmtDate(changeAt) + ", 사유: " + ruleChanges[0].reason_text + ") 전 평균 " + avg(before) + cfg.unit + " (" + before.length + "일) → 후 평균 " + avg(after) + cfg.unit + " (" + after.length + "일)";
+    }
+  }
+  function kstDateOfClient(iso){
+    var d = new Date(iso);
+    var f = new Intl.DateTimeFormat("en-CA", { timeZone:"Asia/Seoul", year:"numeric", month:"2-digit", day:"2-digit" });
+    return f.format(d);
+  }
+
   // ---------------- 초기화 ----------------
 
-  loadPlans();
-  checkSuggestedReflection();
+  (async function init(){
+    try{
+      var data = await fetch("/api/auth/me").then(function(r){ return r.status === 200 ? r.json() : null; });
+      if(data && data.user){ await enterApp(data.user); }
+      else{ showAuthScreen(); }
+    }catch(e){ showAuthScreen(); }
+  })();
 })();
 </script>
 </body>
