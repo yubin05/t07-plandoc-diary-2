@@ -955,8 +955,9 @@
     }else{
       var changeAt = ruleChanges[0].changed_at;
       // record_date(KST 날짜)와 changed_at(UTC 시각)은 직접 비교하면 하루가 양쪽 모두에서 빠짐.
-      // 그날 값을 마지막으로 기록한 시각(updated_at, changed_at과 같은 UTC ISO 형식)으로 나눠 모든 날이 정확히 한쪽에 들어가게 함.
-      var isBefore = function(r){ return r.updated_at < changeAt; };
+      // 그날 값을 처음 기록한 시각(created_at, changed_at과 같은 UTC ISO 형식)으로 나눠 모든 날이 정확히 한쪽에 들어가게 함.
+      // updated_at을 쓰면 규칙 변경 뒤 같은 날 "오늘 값 기록하기"를 다시 누를 때 그날이 "후"로 넘어감.
+      var isBefore = function(r){ return r.created_at < changeAt; };
       var before = rows.filter(isBefore).map(function(r){ return r.metric_value; });
       var after = rows.filter(function(r){ return !isBefore(r); }).map(function(r){ return r.metric_value; });
       var avg = function(arr){ return arr.length ? Math.round((arr.reduce(function(a,b){return a+b;},0)/arr.length)*10)/10 : null; };
