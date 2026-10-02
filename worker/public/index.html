@@ -954,8 +954,11 @@
       comparisonEl.textContent = rows.length + "일 기록됨. 아직 규칙 변경 없음.";
     }else{
       var changeAt = ruleChanges[0].changed_at;
-      var before = rows.filter(function(r){ return r.record_date + "T23:59:59.000Z" < changeAt; }).map(function(r){ return r.metric_value; });
-      var after = rows.filter(function(r){ return r.record_date + "T00:00:00.000Z" >= changeAt; }).map(function(r){ return r.metric_value; });
+      // record_date(KST 날짜)와 changed_at(UTC 시각)은 직접 비교하면 하루가 양쪽 모두에서 빠짐.
+      // 그날 값을 마지막으로 기록한 시각(updated_at, changed_at과 같은 UTC ISO 형식)으로 나눠 모든 날이 정확히 한쪽에 들어가게 함.
+      var isBefore = function(r){ return r.updated_at < changeAt; };
+      var before = rows.filter(isBefore).map(function(r){ return r.metric_value; });
+      var after = rows.filter(function(r){ return !isBefore(r); }).map(function(r){ return r.metric_value; });
       var avg = function(arr){ return arr.length ? Math.round((arr.reduce(function(a,b){return a+b;},0)/arr.length)*10)/10 : null; };
       comparisonEl.textContent = "규칙 변경(" + fmtDate(changeAt) + ", 사유: " + ruleChanges[0].reason_text + ") 전 평균 " + avg(before) + cfg.unit + " (" + before.length + "일) → 후 평균 " + avg(after) + cfg.unit + " (" + after.length + "일)";
     }
